@@ -54,7 +54,7 @@ function getInBoundPositionOf(p){
 	return new Position( Math.max( Math.min(0,p.x),CUBIC_SIZE) , Math.max( Math.min(0,p.y),CUBIC_SIZE) , Math.max( Math.min(0,p.z),CUBIC_SIZE) );
 }
 function someoneIn(p){
-	return (getEnvP(p) == null);
+	return (getEnvP(p) != null);
 }
 function getEnvP(p){
 	if( ! isInBound(p) ){
@@ -107,9 +107,10 @@ function moveNodeSomewhereBetter(n){
 	
 	var bestP = new Position(n.x,n.y,n.z);
 	var minimumStress = null;
-	for (var i = -1*SCANNABLE_SPACE; i < n.position.x + SCANNABLE_SPACE ; i++) {
-		for (var j = -1*SCANNABLE_SPACE; j < n.position.x + SCANNABLE_SPACE ; j++) {
-			for (var k = -1*SCANNABLE_SPACE; k < n.position.x + SCANNABLE_SPACE ; k++) {
+	n.calculStress();
+	for (var i = -1*SCANNABLE_SPACE+n.position.x; i <= n.position.x + SCANNABLE_SPACE ; i++) {
+		for (var j = -1*SCANNABLE_SPACE+n.position.y; j <= n.position.y + SCANNABLE_SPACE ; j++) {
+			for (var k = -1*SCANNABLE_SPACE+n.position.z; k <= n.position.z + SCANNABLE_SPACE ; k++) {
 
 				if( i==j && j==k)
 					continue;
@@ -129,6 +130,7 @@ function moveNodeSomewhereBetter(n){
 			};
 		};
 	};
+	
 	if( minimumStress < n.stress ){
 		// Is someone already at this place ?
 		if(someoneIn(bestP)){
@@ -137,6 +139,7 @@ function moveNodeSomewhereBetter(n){
 			stranger.calculStress();
 			if( stranger.calculStress(bestP) + minimumStress <= stranger.stress + n.stress ){
 				swapNodeEnv(bestP,n.position);
+				console.log("swap in ",bestP);
 			}else{
 				console.log("Best solution found");
 				return;
@@ -144,6 +147,7 @@ function moveNodeSomewhereBetter(n){
 
 		}else{
 			setEnvP(bestP,n);
+			console.log("moved in ",bestP);
 		}
 	}
 }
