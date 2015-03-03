@@ -171,7 +171,6 @@ $(function (){
 				for (var k = 0; k < content[i].column.length; k++) {
 					if(content[i].column[k].ref == content[j].name){
 						content[i].node.link.push({link:content[j].node,label:content[i].column[k].name,color:content[i].column[k].color});
-						//content[i].node.link.push({link:content[j].node,label:content[i].column[k].name,color:content[i].column[k].color});
 						total_node ++;
 					}
 				};
