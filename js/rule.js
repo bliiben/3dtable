@@ -5,7 +5,8 @@
 
 
 // 3d table
-var CUBIC_SIZE = 14; 
+var CUBIC_SIZE = 14;
+var SCANNABLE_SPACE = 1;
 var env = (function (){ var r = []; for (var i = 0; i < CUBIC_SIZE; i++) {r.push([]); for (var j = 0; j < CUBIC_SIZE; j++) {r[i].push([]); for (var k = 0; k < CUBIC_SIZE; k++) {r[i][j].push(null); }; }; }; return r; }());
 console.log("Setting env : "+env.length+"*"+env[0].length+"*"+env[0][0].length + " of " +env[0][0][0]);
 var nodeList = [];
@@ -18,13 +19,22 @@ function Node(info){
 	this.position;
 	this.stress=0;
 }
+//If no arg
+//	this.stress is set
+//else
+//	this.stress not set
+//return stress
+Node.prototype.calculStress = function(potentialPosition) {
+	var stress= 0;
+	var position = (typeof potentialPosition !='undefined')?potentialPosition:this.position;
+	
+	for ( i in this.link) 
+		stress += imp(distance(position , this.link[i].link.position));
 
-Node.prototype.calculStress = function(position) {
-	position = position | this.p;
-	this.stress=0;
-	for ( i in this.connexion) {
-		this.stress += imp(distance(position , connexion[i].p));
-	}
+	if(typeof potentialPosition =='undefined')
+		this.stress=stress;
+
+	return stress;
 };
 // Differents globals functions
 
@@ -43,6 +53,9 @@ function isInBound(p){
 function getInBoundPositionOf(p){
 	return new Position( Math.max( Math.min(0,p.x),CUBIC_SIZE) , Math.max( Math.min(0,p.y),CUBIC_SIZE) , Math.max( Math.min(0,p.z),CUBIC_SIZE) );
 }
+function someoneIn(p){
+	return (getEnvP(p) == null);
+}
 function getEnvP(p){
 	if( ! isInBound(p) ){
 		p = getInBoundPositionOf(p);
@@ -56,12 +69,82 @@ function setEnvP(p,n){
 		console.log("OutOfBound : Resizing : setEnvP");
 	}
 	env[p.x][p.y][p.z]=n;
+	n.position=p;
+}
+function swapNodeEnv(p1,p2){
+	var n1 = getEnvP(p1);
+	var n2 = getEnvP(p2);
+
+	setEnvP(p1,n2);
+	setEnvP(p2,n1);
 }
 // Place a Node somewhere
-function placeNode(n){
-	var p = new Position(rand(0,CUBIC_SIZE-1),rand(0,CUBIC_SIZE-1),rand(0,CUBIC_SIZE-1));
-	if(getEnvP(p)==null){
+function placeNodeRandom(n){
+	var place = false;
+	var essaies = 0;
+	while (!place){
+		essaies++;
+		var p = new Position(rand(0,CUBIC_SIZE-1),rand(0,CUBIC_SIZE-1),rand(0,CUBIC_SIZE-1));
+		if(getEnvP(p)==null){
+			place=true;
+			setEnvP(p,n);
+		}
+		if(essaies >100){
+			console.log("Trop d'essaies");
+			return;
+		}
+	}
+}
+function placeAllNode(){
+	for ( i in nodeList ){
+		placeNodeRandom(nodeList[i]);
+	}
+}
 
+// Move to an more appropriate place the node
+
+function moveNodeSomewhereBetter(n){
+	
+	var bestP = new Position(n.x,n.y,n.z);
+	var minimumStress = null;
+	for (var i = -1*SCANNABLE_SPACE; i < n.position.x + SCANNABLE_SPACE ; i++) {
+		for (var j = -1*SCANNABLE_SPACE; j < n.position.x + SCANNABLE_SPACE ; j++) {
+			for (var k = -1*SCANNABLE_SPACE; k < n.position.x + SCANNABLE_SPACE ; k++) {
+
+				if( i==j && j==k)
+					continue;
+
+				var currentPosition = new Position(i,j,k);
+
+				if( ! isInBound(currentPosition) )
+					continue;
+
+				var stressHere = n.calculStress(currentPosition);
+
+				if( minimumStress == null || minimumStress > stressHere){
+					minimumStress = stressHere;
+					bestP=currentPosition;
+				}
+				
+			};
+		};
+	};
+	if( minimumStress < n.stress ){
+		// Is someone already at this place ?
+		if(someoneIn(bestP)){
+			// Is it better for the common good to move it ?
+			var stranger = getEnvP(bestP);
+			stranger.calculStress();
+			if( stranger.calculStress(bestP) + minimumStress <= stranger.stress + n.stress ){
+				swapNodeEnv(bestP,n.position);
+			}else{
+				console.log("Best solution found");
+				return;
+			}
+
+		}else{
+			setEnvP(bestP,n);
+		}
 	}
 }
 // Collect data from data.json to create the linking
@@ -84,6 +167,7 @@ $(function (){
 				for (var k = 0; k < content[i].column.length; k++) {
 					if(content[i].column[k].ref == content[j].name){
 						content[i].node.link.push({link:content[j].node,label:content[i].column[k].name,color:content[i].column[k].color});
+						//content[i].node.link.push({link:content[j].node,label:content[i].column[k].name,color:content[i].column[k].color});
 						total_node ++;
 					}
 				};
@@ -98,4 +182,5 @@ $(function (){
 
 function json_loaded(){
 	//Put into 3d environment
+	placeAllNode();
 }

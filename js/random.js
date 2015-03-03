@@ -121,7 +121,7 @@ return(a*67108864.0+b)*(1.0/9007199254740992.0);
  
 /* These real versions are due to Isaku Wada, 2002/01/09 added */
 
-var mt = new MersenneTwister();
+var mt = new MersenneTwister(0);
 
 function rand( lowest, highest){
     var adjustedHigh = (highest - lowest) + 1;       
