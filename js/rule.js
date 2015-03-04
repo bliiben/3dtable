@@ -76,9 +76,9 @@ function setEnvP(p,n){
 
 	//Change the view
 	for( i in n.vector){
-		n.vector.x=n.position.x*20-(20*7);
-		n.vector.y=n.position.y*20-(20*7);
-		n.vector.z=n.position.z*20-(20*7);
+		n.vector[i].x=n.position.x*20-(20*7);
+		n.vector[i].y=n.position.y*20-(20*7);
+		n.vector[i].z=n.position.z*20-(20*7);
 	}
 	for( i in n.geometry){
 		n.geometry[i].verticesNeedUpdate=true;
@@ -163,6 +163,20 @@ function moveNodeSomewhereBetter(n){
 		}
 	}
 }
+
+var ouzi = 0;
+function tryag(){
+  
+  moveNodeSomewhereBetter(nodeList[ouzi%nodeList.length]);
+  
+  ouzi++;
+  setTimeout("tryag()",5);
+}
+
+function arrangeBest(){
+	
+}
+//tryag();
 // Collect data from data.json to create the linking
 
 var content=null;
@@ -198,4 +212,6 @@ $(function (){
 function json_loaded(){
 	//Put into 3d environment
 	placeAllNode();
+	launchAnimation();
+	linkingVerticesToNodes();
 }
