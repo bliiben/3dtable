@@ -18,6 +18,9 @@ function Node(info){
 	this.name=info.name;
 	this.position;
 	this.stress=0;
+	this.vector=[];
+	this.mesh=[];
+	this.geometry=[];
 }
 //If no arg
 //	this.stress is set
@@ -70,6 +73,16 @@ function setEnvP(p,n){
 	}
 	env[p.x][p.y][p.z]=n;
 	n.position=p;
+
+	//Change the view
+	for( i in n.vector){
+		n.vector.x=n.position.x*20-(20*7);
+		n.vector.y=n.position.y*20-(20*7);
+		n.vector.z=n.position.z*20-(20*7);
+	}
+	for( i in n.geometry){
+		n.geometry[i].verticesNeedUpdate=true;
+	}
 }
 function swapNodeEnv(p1,p2){
 	var n1 = getEnvP(p1);
@@ -104,7 +117,6 @@ function placeAllNode(){
 // Move to an more appropriate place the node
 
 function moveNodeSomewhereBetter(n){
-	
 	var bestP = new Position(n.x,n.y,n.z);
 	var minimumStress = null;
 	n.calculStress();
